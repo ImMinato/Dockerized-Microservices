@@ -1,0 +1,7 @@
+# Descartar almacenamiento local de datos persistentes de Docker
+.data/
+postgres_data/
+redis_data/
+
+# Archivos de entorno del sistema
+.env
