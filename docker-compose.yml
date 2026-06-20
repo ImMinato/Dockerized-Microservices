@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Servicio 1: Base de Datos Relacional Principal
+  database:
+    image: postgres:15-alpine
+    container_name: infra_postgres_db
+    environment:
+      POSTGRES_USER: admin_user
+      POSTGRES_PASSWORD: secure_infra_password_2026
+      POSTGRES_DB: enterprise_telemetry
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - infra_backend_network
+    restart: always
+
+  # Servicio 2: Capa de Caché en Memoria de Ultra Alta Velocidad
+  cache_memory:
+    image: redis:7-alpine
+    container_name: infra_redis_cache
+    command: redis-server --appendonly yes --requirepass redis_secure_token_777
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - infra_backend_network
+    restart: always
+
+  # Servicio 3: Panel de Administración Visual para la Base de Datos
+  db_dashboard:
+    image: dpage/pgadmin4
+    container_name: infra_pgadmin_dashboard
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@telemetry.infra
+      PGADMIN_DEFAULT_PASSWORD: root_dashboard_password
+    ports:
+      - "8080:80"
+    networks:
+      - infra_backend_network
+    depends_on:
+      - database
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  infra_backend_network:
+    driver: bridge
